@@ -10,22 +10,38 @@
 </head>
 <body>
 
-  <!-- Layar pairing, tampil sebelum tersambung -->
+  <!-- Layar penghubung, tampil sebelum tersambung -->
   <section id="pairing-screen" class="pairing-screen">
     <div class="pairing-card">
       <div class="pairing-mark">Gateway</div>
       <h1>Sambungkan nomor WhatsApp</h1>
-      <p class="pairing-sub">Masukkan nomor dengan kode negara, tanpa tanda plus atau nol di depan. Contoh: <span class="mono">62812xxxxxxx</span></p>
+      <p class="pairing-sub">Pilih salah satu cara di bawah. Nomor yang tersambung otomatis menjadi bot.</p>
 
-      <form id="pair-form" class="pairing-form">
-        <input type="tel" id="phone-input" class="phone-input" placeholder="62812xxxxxxx" autocomplete="off" required />
-        <button type="submit" class="btn-primary">Minta kode</button>
-      </form>
+      <div class="connect-tabs">
+        <button class="connect-tab active" data-mode="pairing">Kode pairing</button>
+        <button class="connect-tab" data-mode="qr">Pindai QR</button>
+      </div>
 
-      <div id="pair-result" class="pair-result" hidden>
-        <p class="pair-result-label">Buka WhatsApp di ponsel → Perangkat tertaut → Tautkan perangkat → Tautkan dengan nomor telepon, lalu masukkan kode ini:</p>
-        <div id="pair-code" class="pair-code mono"></div>
-        <p class="pair-hint">Kode berlaku sebentar. Jika kedaluwarsa, minta kode baru.</p>
+      <div id="view-pairing" class="connect-view active">
+        <form id="pair-form" class="pairing-form">
+          <input type="tel" id="phone-input" class="phone-input" placeholder="62812xxxxxxx" autocomplete="off" required />
+          <button type="submit" class="btn-primary">Minta kode</button>
+        </form>
+
+        <div id="pair-result" class="pair-result" hidden>
+          <p class="pair-result-label">Buka WhatsApp di ponsel → Perangkat tertaut → Tautkan perangkat → Tautkan dengan nomor telepon, lalu masukkan kode ini:</p>
+          <div id="pair-code" class="pair-code mono"></div>
+          <p class="pair-hint">Kode berlaku sebentar. Jika kedaluwarsa, minta kode baru.</p>
+        </div>
+      </div>
+
+      <div id="view-qr" class="connect-view">
+        <div class="qr-frame" id="qr-frame">
+          <img id="qr-image" alt="QR code" />
+          <div id="qr-placeholder" class="qr-placeholder">Tekan tombol di bawah untuk memunculkan QR</div>
+        </div>
+        <button id="btn-start-qr" type="button" class="btn-primary">Mulai · Tampilkan QR</button>
+        <p class="pair-hint">Buka WhatsApp → Perangkat tertaut → Tautkan perangkat → arahkan kamera ke QR di atas.</p>
       </div>
 
       <div id="pair-error" class="pair-error" hidden></div>

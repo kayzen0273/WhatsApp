@@ -8,6 +8,13 @@ const pairResult = document.getElementById('pair-result');
 const pairCodeEl = document.getElementById('pair-code');
 const pairError = document.getElementById('pair-error');
 
+const connectTabs = document.querySelectorAll('.connect-tab');
+const viewPairing = document.getElementById('view-pairing');
+const viewQr = document.getElementById('view-qr');
+const qrFrame = document.getElementById('qr-frame');
+const qrImage = document.getElementById('qr-image');
+const btnStartQr = document.getElementById('btn-start-qr');
+
 const chatListEl = document.getElementById('chat-list');
 const chatTitleEl = document.getElementById('chat-title');
 const chatSubtitleEl = document.getElementById('chat-subtitle');
@@ -21,6 +28,34 @@ const URL_RE = /(https?:\/\/[^\s]+)/i;
 
 let chats = new Map();
 let activeJid = null;
+
+// ---------- Switch tab QR / Pairing ----------
+
+connectTabs.forEach((tab) => {
+  tab.addEventListener('click', () => {
+    connectTabs.forEach((t) => t.classList.remove('active'));
+    tab.classList.add('active');
+    viewPairing.classList.toggle('active', tab.dataset.mode === 'pairing');
+    viewQr.classList.toggle('active', tab.dataset.mode === 'qr');
+  });
+});
+
+btnStartQr.addEventListener('click', async () => {
+  pairError.hidden = true;
+  btnStartQr.disabled = true;
+  btnStartQr.textContent = 'Menunggu QR…';
+  try {
+    const res = await fetch('/api/connect-qr', { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Gagal memulai QR');
+  } catch (err) {
+    pairError.textContent = err.message;
+    pairError.hidden = false;
+  } finally {
+    btnStartQr.disabled = false;
+    btnStartQr.textContent = 'Mulai · Tampilkan QR';
+  }
+});
 
 // ---------- Pairing ----------
 
@@ -59,7 +94,22 @@ pairForm.addEventListener('submit', async (e) => {
 
 // ---------- Socket events ----------
 
-socket.on('status', ({ connected, me }) => {
+socket.on('qr', (dataUrl) => {
+  qrImage.src = dataUrl;
+  qrFrame.classList.add('has-image');
+});
+
+socket.on('pairing-code', (code) => {
+  pairCodeEl.textContent = code;
+  pairResult.hidden = false;
+});
+
+socket.on('status', ({ connected, me, error }) => {
+  if (error) {
+    pairError.textContent = error;
+    pairError.hidden = false;
+    return;
+  }
   if (connected) {
     pairingScreen.hidden = true;
     dashboard.hidden = false;
@@ -139,6 +189,10 @@ function buildBubble(msg) {
     bubble.appendChild(buildInlineBrowser(urlMatch[1]));
   }
 
+  if (msg.html) {
+    bubble.appendChild(buildHtmlRender(msg.html));
+  }
+
   const time = document.createElement('span');
   time.className = 'bubble-time';
   time.textContent = new Date(msg.timestamp).toLocaleTimeString('id-ID', {
@@ -148,6 +202,33 @@ function buildBubble(msg) {
 
   row.appendChild(bubble);
   return row;
+}
+
+// Render HTML ASLI (bukan screenshot) di dalam gelembung, lewat iframe
+// sandbox tanpa allow-scripts — markup & CSS tetap hidup, JS diblokir
+// demi keamanan (mencegah kode .html berbahaya mengeksekusi script).
+function buildHtmlRender(code) {
+  const wrap = document.createElement('div');
+  wrap.className = 'bubble-html-frame';
+
+  const label = document.createElement('span');
+  label.className = 'bubble-html-label';
+  label.textContent = '🧩 HTML asli — dirender hidup';
+  wrap.appendChild(label);
+
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('sandbox', 'allow-same-origin');
+  iframe.srcdoc = `<html><body style="margin:0;font-family:sans-serif">${code}</body></html>`;
+  iframe.onload = () => {
+    try {
+      const h = iframe.contentDocument.body.scrollHeight;
+      iframe.style.height = Math.min(Math.max(h + 16, 60), 420) + 'px';
+    } catch (e) {
+      iframe.style.height = '160px';
+    }
+  };
+  wrap.appendChild(iframe);
+  return wrap;
 }
 
 // Fitur utama: tombol untuk membuka pratinjau browser langsung di dalam gelembung chat.

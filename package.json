@@ -1,0 +1,20 @@
+{
+  "name": "wa-dashboard",
+  "version": "1.0.0",
+  "description": "WhatsApp web dashboard dengan login pairing code 8 digit dan preview browser inline di gelembung chat.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.9",
+    "@hapi/boom": "^10.0.1",
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5",
+    "qrcode": "^1.5.4",
+    "chalk": "^4.1.2",
+    "pino": "^9.3.2"
+  }
+}

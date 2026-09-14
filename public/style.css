@@ -31,6 +31,87 @@ html, body {
 button { font-family: inherit; cursor: pointer; }
 input { font-family: inherit; }
 
+.connect-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 22px;
+}
+
+.connect-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 9px 0;
+  border-radius: 8px;
+}
+
+.connect-tab.active {
+  background: rgba(232,184,75,0.16);
+  color: var(--accent);
+}
+
+.connect-view { display: none; }
+.connect-view.active { display: block; }
+
+.qr-frame {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: var(--panel-2);
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.qr-frame img { width: 100%; height: 100%; object-fit: contain; display: none; padding: 10px; background: #fff; }
+.qr-frame.has-image img { display: block; }
+.qr-frame.has-image .qr-placeholder { display: none; }
+
+.qr-placeholder {
+  color: var(--text-dim);
+  font-size: 13px;
+  text-align: center;
+  padding: 0 30px;
+}
+
+.pairing-form { margin-bottom: 0; }
+
+/* ---------- Gelembung render HTML hidup ---------- */
+
+.bubble-html-frame {
+  margin-top: 10px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #fff;
+  width: min(420px, 60vw);
+}
+
+.bubble-html-frame iframe {
+  width: 100%;
+  min-height: 60px;
+  border: none;
+  display: block;
+}
+
+.bubble-html-label {
+  font-size: 11px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  margin-top: 8px;
+  display: block;
+}
+
 /* ---------- Pairing screen ---------- */
 
 .pairing-screen {

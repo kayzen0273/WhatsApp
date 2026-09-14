@@ -130,47 +130,44 @@ async function startSock(mode = connectMode || 'pairing', phoneNumber = '') {
   });
 
   // --- Pesan masuk: simpan ke histori + jalankan command kalau cocok ---
-  sock.ev.on('messages.upsert', async ({ messages }) => {
+  // Command dicek untuk SEMUA pesan (termasuk yang kamu kirim sendiri dari
+  // nomor yang tersambung) supaya kamu bisa uji coba command langsung dari
+  // HP kamu sendiri, bukan cuma dari nomor orang lain.
+  sock.ev.on('messages.upsert', async ({ messages, type }) => {
+    if (type !== 'notify') return; // abaikan sinkronisasi riwayat lama saat reconnect
+
     for (const msg of messages) {
       if (!msg.message) continue;
       const jid = msg.key.remoteJid;
       if (!jid || jid === 'status@broadcast') continue;
 
       const text = extractText(msg);
+      const fromMe = !!msg.key.fromMe;
 
-      if (!msg.key.fromMe) {
-        pushMessage(jid, {
-          id: msg.key.id,
-          fromMe: false,
-          text,
-          timestamp: Number(msg.messageTimestamp) * 1000 || Date.now(),
-        });
+      pushMessage(jid, {
+        id: msg.key.id,
+        fromMe,
+        text,
+        timestamp: Number(msg.messageTimestamp) * 1000 || Date.now(),
+      });
 
-        const prefix = text.trim().split(/\s+/)[0]?.toLowerCase();
-        const cmd = Object.values(commands).find((c) => c.prefix === prefix);
+      const prefix = text.trim().split(/\s+/)[0]?.toLowerCase();
+      const cmd = Object.values(commands).find((c) => c.prefix === prefix);
 
-        if (cmd) {
-          print.command(jid, prefix);
-          try {
-            const result = await cmd.run({ sock, from: jid, msg, text, print });
-            pushMessage(jid, {
-              id: `bot-${Date.now()}`,
-              fromMe: true,
-              text: result?.text || `[bot menjalankan ${prefix}]`,
-              html: result?.html, // kalau ada, dashboard merender ini sebagai HTML hidup
-              timestamp: Date.now(),
-            });
-          } catch (err) {
-            print.error(`Command ${prefix} gagal: ${err.message}`);
-          }
+      if (cmd) {
+        print.command(jid, prefix);
+        try {
+          const result = await cmd.run({ sock, from: jid, msg, text, print });
+          pushMessage(jid, {
+            id: `bot-${Date.now()}`,
+            fromMe: true,
+            text: result?.text || `[bot menjalankan ${prefix}]`,
+            html: result?.html, // kalau ada, dashboard merender ini sebagai HTML hidup
+            timestamp: Date.now(),
+          });
+        } catch (err) {
+          print.error(`Command ${prefix} gagal: ${err.message}`);
         }
-      } else {
-        pushMessage(jid, {
-          id: msg.key.id,
-          fromMe: true,
-          text,
-          timestamp: Number(msg.messageTimestamp) * 1000 || Date.now(),
-        });
       }
     }
   });
